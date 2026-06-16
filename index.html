@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Deadlines" />
+  <meta name="theme-color" content="#6366f1" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Deadline Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #273549;
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding-top: max(16px, env(safe-area-inset-top));
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+    .btn-danger { background: #7f1d1d; color: #fca5a5; border: none; }
+    .btn-danger:hover { background: #991b1b; }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+    main { padding: 20px; max-width: 700px; margin: 0 auto; }
+
+    /* Notification banner */
+    #notif-banner {
+      display: none;
+      background: #1e3a5f;
+      border: 1px solid #3b82f6;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+      color: #93c5fd;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #notif-banner button { margin-left: auto; flex-shrink: 0; }
+
+    /* Empty state */
+    #empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    #empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+    #empty-state p { font-size: 0.95rem; }
+
+    /* Project cards */
+    #projects-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .project-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .project-card.urgent { border-color: var(--red); }
+    .project-card.soon   { border-color: var(--yellow); }
+    .project-card.ok     { border-color: var(--green); }
+
+    .card-header {
+      padding: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .urgent .status-dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .soon   .status-dot { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .ok     .status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .past   .status-dot { background: var(--muted); }
+
+    .card-title-area { flex: 1; min-width: 0; }
+    .card-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+    .card-meta { font-size: 0.8rem; color: var(--muted); }
+    .card-meta span { display: inline-block; margin-right: 12px; }
+    .deadline-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .urgent .deadline-badge { background: #450a0a; color: #fca5a5; }
+    .soon   .deadline-badge { background: #451a03; color: #fcd34d; }
+    .ok     .deadline-badge { background: #052e16; color: #86efac; }
+    .past   .deadline-badge { background: var(--surface2); color: var(--muted); }
+
+    .chevron { color: var(--muted); transition: transform 0.2s; flex-shrink: 0; margin-top: 2px; }
+    .card-body.open ~ .card-header .chevron,
+    .project-card.expanded .chevron { transform: rotate(180deg); }
+
+    .card-body {
+      display: none;
+      border-top: 1px solid var(--border);
+      padding: 16px;
+    }
+    .card-body.open { display: block; }
+
+    .description-text {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .criteria-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .criteria-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.875rem;
+    }
+    .criteria-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .criteria-item label {
+      cursor: pointer;
+      line-height: 1.4;
+      transition: color 0.15s;
+    }
+    .criteria-item input:checked + label { color: var(--muted); text-decoration: line-through; }
+
+    .progress-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; margin-bottom: 16px; }
+    .progress-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.3s; }
+
+    .card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius) var(--radius) 0 0;
+      width: 100%;
+      max-width: 700px;
+      max-height: 90dvh;
+      overflow-y: auto;
+      padding: 24px 20px;
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    /* Criteria editor */
+    #criteria-editor { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+    .criteria-edit-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .criteria-edit-row input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .criteria-edit-row input:focus { border-color: var(--accent); }
+    .remove-criterion { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; padding: 4px; line-height: 1; }
+    .remove-criterion:hover { color: var(--red); }
+
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+
+    /* Countdown */
+    .countdown { font-size: 0.8rem; font-weight: 700; }
+    .countdown.past { color: var(--muted); }
+
+    /* Notification status */
+    #notif-status {
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    #notif-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    #notif-status.granted .dot { background: var(--green); }
+    #notif-status.denied .dot { background: var(--red); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📅 Deadline Tracker</h1>
+  <button class="btn btn-primary" onclick="openModal()">+ Nieuw project</button>
+</header>
+
+<main>
+  <div id="notif-banner" style="display:none">
+    <span>🔔 Schakel meldingen in voor deadline-herinneringen</span>
+    <button class="btn btn-sm btn-primary" onclick="requestNotifications()">Inschakelen</button>
+  </div>
+
+  <div id="empty-state" style="display:none">
+    <div class="icon">📋</div>
+    <p>Nog geen projecten.<br>Klik op <strong>+ Nieuw project</strong> om te beginnen.</p>
+  </div>
+
+  <div id="projects-list"></div>
+</main>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modal" onclick="handleBackdropClick(event)">
+  <div class="modal">
+    <h2 id="modal-title">Nieuw project</h2>
+    <div class="form-group">
+      <label>Projectnaam *</label>
+      <input type="text" id="f-name" placeholder="bijv. Scriptie hoofdstuk 3" />
+    </div>
+    <div class="form-group">
+      <label>Deadline *</label>
+      <input type="datetime-local" id="f-deadline" />
+    </div>
+    <div class="form-group">
+      <label>Beschrijving</label>
+      <textarea id="f-desc" placeholder="Wat moet je inleveren of afronden?"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Beoordelingscriteria / vereisten</label>
+      <div id="criteria-editor"></div>
+      <button class="btn btn-ghost btn-sm" onclick="addCriterion()">+ Criterium toevoegen</button>
+    </div>
+    <div id="notif-status">
+      <div class="dot"></div>
+      <span id="notif-status-text">Meldingen: niet gevraagd</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Annuleren</button>
+      <button class="btn btn-primary" onclick="saveProject()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────
+let projects = JSON.parse(localStorage.getItem('dt_projects') || '[]');
+let editingId = null;
+
+// ── Storage ──────────────────────────────────────────────────────────
+function save() {
+  localStorage.setItem('dt_projects', JSON.stringify(projects));
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+function urgencyClass(deadline) {
+  const ms = new Date(deadline).getTime() - Date.now();
+  if (ms < 0)                    return 'past';
+  if (ms < 24 * 3600 * 1000)    return 'urgent';
+  if (ms < 7 * 24 * 3600 * 1000) return 'soon';
+  return 'ok';
+}
+
+function formatCountdown(deadline) {
+  const ms = new Date(deadline).getTime() - Date.now();
+  if (ms < 0) return 'Verlopen';
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if (d > 0) return `Nog ${d}d ${h}u`;
+  if (h > 0) return `Nog ${h}u ${m}m`;
+  return `Nog ${m} min`;
+}
+
+function formatDate(deadline) {
+  return new Date(deadline).toLocaleString('nl-NL', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+// ── Render ───────────────────────────────────────────────────────────
+function render() {
+  const list = document.getElementById('projects-list');
+  const empty = document.getElementById('empty-state');
+
+  const sorted = [...projects].sort((a, b) =>
+    new Date(a.deadline) - new Date(b.deadline)
+  );
+
+  if (sorted.length === 0) {
+    empty.style.display = 'block';
+    list.innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  list.innerHTML = sorted.map(p => {
+    const cls = urgencyClass(p.deadline);
+    const total = p.criteria.length;
+    const done = p.criteria.filter(c => c.checked).length;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    const isExpanded = p._expanded ? 'open' : '';
+
+    return `
+    <div class="project-card ${cls}" id="card-${p.id}">
+      <div class="card-header" onclick="toggleCard('${p.id}')">
+        <div class="status-dot"></div>
+        <div class="card-title-area">
+          <div class="card-title">${escHtml(p.name)}</div>
+          <div class="card-meta">
+            <span>📅 ${formatDate(p.deadline)}</span>
+            ${total > 0 ? `<span>✅ ${done}/${total} criteria</span>` : ''}
+          </div>
+        </div>
+        <span class="deadline-badge">${formatCountdown(p.deadline)}</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="card-body ${isExpanded}">
+        ${p.description ? `<p class="description-text">${escHtml(p.description)}</p>` : ''}
+        ${total > 0 ? `
+          <div class="section-label">Beoordelingscriteria (${done}/${total})</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${pct}%"></div>
+          </div>
+          <ul class="criteria-list">
+            ${p.criteria.map((c, i) => `
+              <li class="criteria-item">
+                <input type="checkbox" id="c-${p.id}-${i}"
+                  ${c.checked ? 'checked' : ''}
+                  onchange="toggleCriterion('${p.id}', ${i}, this.checked)" />
+                <label for="c-${p.id}-${i}">${escHtml(c.text)}</label>
+              </li>
+            `).join('')}
+          </ul>
+        ` : ''}
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openModal('${p.id}')">✏️ Bewerken</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProject('${p.id}')">🗑️ Verwijderen</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toggleCard(id) {
+  const p = projects.find(x => x.id === id);
+  if (p) { p._expanded = !p._expanded; render(); }
+}
+
+function toggleCriterion(id, index, checked) {
+  const p = projects.find(x => x.id === id);
+  if (p) { p.criteria[index].checked = checked; save(); render(); }
+}
+
+// ── Modal ────────────────────────────────────────────────────────────
+function openModal(id = null) {
+  editingId = id;
+  const modal = document.getElementById('modal');
+  document.getElementById('modal-title').textContent = id ? 'Project bewerken' : 'Nieuw project';
+
+  if (id) {
+    const p = projects.find(x => x.id === id);
+    document.getElementById('f-name').value = p.name;
+    // Format for datetime-local input
+    const d = new Date(p.deadline);
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+      .toISOString().slice(0, 16);
+    document.getElementById('f-deadline').value = local;
+    document.getElementById('f-desc').value = p.description || '';
+    renderCriteriaEditor(p.criteria.map(c => c.text));
+  } else {
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-deadline').value = '';
+    document.getElementById('f-desc').value = '';
+    renderCriteriaEditor([]);
+  }
+
+  updateNotifStatus();
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('f-name').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  editingId = null;
+}
+
+function handleBackdropClick(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+}
+
+// ── Criteria editor ──────────────────────────────────────────────────
+function renderCriteriaEditor(texts) {
+  const editor = document.getElementById('criteria-editor');
+  editor.innerHTML = '';
+  texts.forEach((t, i) => addCriterionRow(t, i));
+}
+
+function addCriterionRow(value = '', index) {
+  const editor = document.getElementById('criteria-editor');
+  const row = document.createElement('div');
+  row.className = 'criteria-edit-row';
+  row.innerHTML = `
+    <input type="text" placeholder="bijv. Minimaal 1000 woorden" value="${escHtml(value)}"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();addCriterion();}" />
+    <button class="remove-criterion" onclick="this.parentElement.remove()" title="Verwijderen">✕</button>
+  `;
+  editor.appendChild(row);
+  if (index === undefined) row.querySelector('input').focus();
+}
+
+function addCriterion() {
+  addCriterionRow();
+}
+
+function getCriteriaTexts() {
+  return [...document.querySelectorAll('#criteria-editor .criteria-edit-row input')]
+    .map(i => i.value.trim()).filter(Boolean);
+}
+
+// ── Save ─────────────────────────────────────────────────────────────
+function saveProject() {
+  const name = document.getElementById('f-name').value.trim();
+  const deadline = document.getElementById('f-deadline').value;
+  if (!name || !deadline) {
+    alert('Vul minimaal een projectnaam en deadline in.');
+    return;
+  }
+  const description = document.getElementById('f-desc').value.trim();
+  const criteriaTexts = getCriteriaTexts();
+
+  if (editingId) {
+    const p = projects.find(x => x.id === editingId);
+    // Merge: keep existing checked state if criterion text matches
+    const oldMap = Object.fromEntries(p.criteria.map(c => [c.text, c.checked]));
+    p.name = name;
+    p.deadline = deadline;
+    p.description = description;
+    p.criteria = criteriaTexts.map(t => ({ text: t, checked: oldMap[t] || false }));
+  } else {
+    projects.push({
+      id: uid(),
+      name,
+      deadline,
+      description,
+      criteria: criteriaTexts.map(t => ({ text: t, checked: false })),
+      _expanded: true
+    });
+  }
+
+  save();
+  closeModal();
+  render();
+  scheduleNotificationCheck();
+}
+
+function deleteProject(id) {
+  if (!confirm('Project verwijderen?')) return;
+  projects = projects.filter(p => p.id !== id);
+  save();
+  render();
+}
+
+// ── Notifications ────────────────────────────────────────────────────
+function updateNotifStatus() {
+  const el = document.getElementById('notif-status');
+  const txt = document.getElementById('notif-status-text');
+  const banner = document.getElementById('notif-banner');
+
+  if (!('Notification' in window)) {
+    el.className = 'notif-status';
+    txt.textContent = 'Meldingen: niet ondersteund door browser';
+    banner.style.display = 'none';
+    return;
+  }
+
+  if (Notification.permission === 'granted') {
+    el.className = 'granted';
+    txt.textContent = 'Meldingen: ingeschakeld ✓';
+    banner.style.display = 'none';
+  } else if (Notification.permission === 'denied') {
+    el.className = 'denied';
+    txt.textContent = 'Meldingen: geblokkeerd (wijzig in browserinstellingen)';
+    banner.style.display = 'none';
+  } else {
+    el.className = '';
+    txt.textContent = 'Meldingen: nog niet ingeschakeld';
+    if (projects.length > 0) banner.style.display = 'flex';
+  }
+}
+
+async function requestNotifications() {
+  if (!('Notification' in window)) return;
+  const result = await Notification.requestPermission();
+  updateNotifStatus();
+  if (result === 'granted') scheduleNotificationCheck();
+}
+
+// Notification check via service worker or direct
+function scheduleNotificationCheck() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.ready.then(reg => {
+    if (reg.active) {
+      reg.active.postMessage({ type: 'CHECK_DEADLINES', projects });
+    }
+  });
+  // Also do direct check for when SW not ready yet
+  checkDeadlinesDirect();
+}
+
+const INTERVALS = [
+  { ms: 28 * 24 * 3600 * 1000, label: '4 weken' },
+  { ms: 14 * 24 * 3600 * 1000, label: '2 weken' },
+  { ms:  7 * 24 * 3600 * 1000, label: '1 week' },
+  { ms:      24 * 3600 * 1000, label: '24 uur' },
+];
+
+function checkDeadlinesDirect() {
+  if (Notification.permission !== 'granted') return;
+  const now = Date.now();
+  const notified = JSON.parse(localStorage.getItem('dt_notified') || '{}');
+
+  projects.forEach(p => {
+    const deadline = new Date(p.deadline).getTime();
+    const remaining = deadline - now;
+    if (remaining < 0) return;
+
+    INTERVALS.forEach(({ ms, label }) => {
+      const key = `${p.id}_${label}`;
+      if (notified[key]) return;
+      // Fire if we're within 30 min of the trigger point (and past it on this side)
+      if (remaining <= ms && remaining > ms - 30 * 60 * 1000) {
+        new Notification(`Deadline herinnering: ${p.name}`, {
+          body: `Nog ${label} tot de deadline! (${formatDate(p.deadline)})`,
+          icon: './icon-192.png',
+          tag: key
+        });
+        notified[key] = true;
+        localStorage.setItem('dt_notified', JSON.stringify(notified));
+      }
+    });
+  });
+}
+
+// ── Service Worker ───────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── Live countdown update ────────────────────────────────────────────
+setInterval(() => {
+  // Update countdown badges without full re-render
+  projects.forEach(p => {
+    const badge = document.querySelector(`#card-${p.id} .deadline-badge`);
+    if (badge) badge.textContent = formatCountdown(p.deadline);
+  });
+  checkDeadlinesDirect();
+}, 60 * 1000);
+
+// ── Init ─────────────────────────────────────────────────────────────
+render();
+updateNotifStatus();
+scheduleNotificationCheck();
+</script>
+</body>
+</html>
