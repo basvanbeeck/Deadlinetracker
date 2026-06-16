@@ -35,6 +35,61 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
 
+    /* ── Login scherm ── */
+    #login-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    #login-screen .logo { font-size: 3rem; margin-bottom: 16px; }
+    #login-screen h1 { font-size: 1.6rem; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+    #login-screen p { color: var(--muted); font-size: 0.95rem; margin-bottom: 32px; line-height: 1.5; }
+    .btn-google {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      color: #333;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.1s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .btn-google:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+    .btn-google:active { transform: scale(0.97); }
+    .btn-google svg { width: 22px; height: 22px; }
+    #login-error { color: #fca5a5; font-size: 0.85rem; margin-top: 16px; display: none; }
+
+    /* ── Laden ── */
+    #loading-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      gap: 16px;
+      color: var(--muted);
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── App ── */
+    #app { display: none; }
+
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -46,13 +101,35 @@
       top: 0;
       z-index: 100;
       padding-top: max(16px, env(safe-area-inset-top));
+      gap: 10px;
     }
 
-    header h1 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--accent);
+    header h1 { font-size: 1.2rem; font-weight: 700; color: var(--accent); flex: 1; }
+
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+      border: 2px solid var(--border);
     }
+    .user-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px;
+      z-index: 300;
+      min-width: 200px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      display: none;
+    }
+    .user-menu.open { display: block; }
+    .user-menu-name { padding: 8px 12px; font-size: 0.85rem; color: var(--muted); border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .user-menu button { width: 100%; text-align: left; background: none; border: none; color: var(--text); padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.875rem; }
+    .user-menu button:hover { background: var(--surface2); }
 
     .btn {
       display: inline-flex;
@@ -77,9 +154,7 @@
 
     main { padding: 20px; max-width: 700px; margin: 0 auto; }
 
-    /* Notification banner */
     #notif-banner {
-      display: none;
       background: #1e3a5f;
       border: 1px solid #3b82f6;
       border-radius: var(--radius);
@@ -87,13 +162,21 @@
       margin-bottom: 16px;
       font-size: 0.85rem;
       color: #93c5fd;
-      display: flex;
+      display: none;
       align-items: center;
       gap: 10px;
     }
     #notif-banner button { margin-left: auto; flex-shrink: 0; }
 
-    /* Empty state */
+    #sync-indicator {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 12px;
+      display: none;
+    }
+    #sync-indicator.syncing { display: block; }
+
     #empty-state {
       text-align: center;
       padding: 60px 20px;
@@ -102,7 +185,6 @@
     #empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
     #empty-state p { font-size: 0.95rem; }
 
-    /* Project cards */
     #projects-list { display: flex; flex-direction: column; gap: 14px; }
 
     .project-card {
@@ -126,8 +208,7 @@
     }
 
     .status-dot {
-      width: 10px;
-      height: 10px;
+      width: 10px; height: 10px;
       border-radius: 50%;
       margin-top: 5px;
       flex-shrink: 0;
@@ -141,12 +222,10 @@
     .card-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
     .card-meta { font-size: 0.8rem; color: var(--muted); }
     .card-meta span { display: inline-block; margin-right: 12px; }
+
     .deadline-badge {
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 20px;
-      white-space: nowrap;
+      font-size: 0.75rem; font-weight: 700;
+      padding: 3px 8px; border-radius: 20px; white-space: nowrap;
     }
     .urgent .deadline-badge { background: #450a0a; color: #fca5a5; }
     .soon   .deadline-badge { background: #451a03; color: #fcd34d; }
@@ -154,8 +233,6 @@
     .past   .deadline-badge { background: var(--surface2); color: var(--muted); }
 
     .chevron { color: var(--muted); transition: transform 0.2s; flex-shrink: 0; margin-top: 2px; }
-    .card-body.open ~ .card-header .chevron,
-    .project-card.expanded .chevron { transform: rotate(180deg); }
 
     .card-body {
       display: none;
@@ -165,41 +242,23 @@
     .card-body.open { display: block; }
 
     .description-text {
-      font-size: 0.875rem;
-      color: var(--muted);
-      margin-bottom: 16px;
-      line-height: 1.5;
+      font-size: 0.875rem; color: var(--muted);
+      margin-bottom: 16px; line-height: 1.5;
     }
 
     .section-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 10px;
+      font-size: 0.75rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); margin-bottom: 10px;
     }
 
     .criteria-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-    .criteria-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-size: 0.875rem;
-    }
+    .criteria-item { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; }
     .criteria-item input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      margin-top: 2px;
-      accent-color: var(--accent);
-      flex-shrink: 0;
-      cursor: pointer;
+      width: 16px; height: 16px; margin-top: 2px;
+      accent-color: var(--accent); flex-shrink: 0; cursor: pointer;
     }
-    .criteria-item label {
-      cursor: pointer;
-      line-height: 1.4;
-      transition: color 0.15s;
-    }
+    .criteria-item label { cursor: pointer; line-height: 1.4; transition: color 0.15s; }
     .criteria-item input:checked + label { color: var(--muted); text-decoration: line-through; }
 
     .progress-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; margin-bottom: 16px; }
@@ -210,23 +269,19 @@
     /* Modal */
     .modal-backdrop {
       display: none;
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background: rgba(0,0,0,0.7);
       z-index: 200;
       align-items: flex-end;
       justify-content: center;
-      padding: 0;
     }
     .modal-backdrop.open { display: flex; }
 
     .modal {
       background: var(--surface);
       border-radius: var(--radius) var(--radius) 0 0;
-      width: 100%;
-      max-width: 700px;
-      max-height: 90dvh;
-      overflow-y: auto;
+      width: 100%; max-width: 700px;
+      max-height: 90dvh; overflow-y: auto;
       padding: 24px 20px;
       padding-bottom: max(24px, env(safe-area-inset-bottom));
       animation: slideUp 0.25s ease;
@@ -237,40 +292,20 @@
 
     .form-group { margin-bottom: 16px; }
     .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .form-group input,
-    .form-group textarea {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 10px 14px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.15s;
+    .form-group input, .form-group textarea {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); padding: 10px 14px;
+      font-size: 0.95rem; font-family: inherit; outline: none; transition: border-color 0.15s;
     }
-    .form-group input:focus,
-    .form-group textarea:focus { border-color: var(--accent); }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
     .form-group textarea { resize: vertical; min-height: 80px; }
 
-    /* Criteria editor */
     #criteria-editor { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-    .criteria-edit-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+    .criteria-edit-row { display: flex; gap: 8px; align-items: center; }
     .criteria-edit-row input {
-      flex: 1;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 8px 12px;
-      font-size: 0.875rem;
-      font-family: inherit;
-      outline: none;
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); padding: 8px 12px;
+      font-size: 0.875rem; font-family: inherit; outline: none;
     }
     .criteria-edit-row input:focus { border-color: var(--accent); }
     .remove-criterion { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; padding: 4px; line-height: 1; }
@@ -279,18 +314,9 @@
     .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
     .modal-actions .btn { flex: 1; justify-content: center; }
 
-    /* Countdown */
-    .countdown { font-size: 0.8rem; font-weight: 700; }
-    .countdown.past { color: var(--muted); }
-
-    /* Notification status */
     #notif-status {
-      font-size: 0.75rem;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 8px;
+      font-size: 0.75rem; color: var(--muted);
+      display: flex; align-items: center; gap: 6px; margin-top: 8px;
     }
     #notif-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
     #notif-status.granted .dot { background: var(--green); }
@@ -299,24 +325,59 @@
 </head>
 <body>
 
-<header>
-  <h1>📅 Deadline Tracker</h1>
-  <button class="btn btn-primary" onclick="openModal()">+ Nieuw project</button>
-</header>
+<!-- Laden -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <span>Laden...</span>
+</div>
 
-<main>
-  <div id="notif-banner" style="display:none">
-    <span>🔔 Schakel meldingen in voor deadline-herinneringen</span>
-    <button class="btn btn-sm btn-primary" onclick="requestNotifications()">Inschakelen</button>
-  </div>
+<!-- Login -->
+<div id="login-screen" style="display:none">
+  <div class="logo">📅</div>
+  <h1>Deadline Tracker</h1>
+  <p>Houd al je projectdeadlines bij,<br>gesynchroniseerd op al je apparaten.</p>
+  <button class="btn-google" onclick="signIn()">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+    Inloggen met Google
+  </button>
+  <p id="login-error">Inloggen mislukt. Probeer het opnieuw.</p>
+</div>
 
-  <div id="empty-state" style="display:none">
-    <div class="icon">📋</div>
-    <p>Nog geen projecten.<br>Klik op <strong>+ Nieuw project</strong> om te beginnen.</p>
-  </div>
+<!-- App -->
+<div id="app">
+  <header>
+    <h1>📅 Deadline Tracker</h1>
+    <button class="btn btn-primary" onclick="openModal()">+ Nieuw project</button>
+    <div style="position:relative">
+      <img id="user-avatar" class="user-avatar" src="" alt="profiel" onclick="toggleUserMenu()" />
+      <div class="user-menu" id="user-menu">
+        <div class="user-menu-name" id="user-name"></div>
+        <button onclick="signOut()">🚪 Uitloggen</button>
+      </div>
+    </div>
+  </header>
 
-  <div id="projects-list"></div>
-</main>
+  <main>
+    <div id="notif-banner">
+      <span>🔔 Schakel meldingen in voor deadline-herinneringen</span>
+      <button class="btn btn-sm btn-primary" onclick="requestNotifications()">Inschakelen</button>
+    </div>
+
+    <div id="sync-indicator">⟳ Synchroniseren...</div>
+
+    <div id="empty-state" style="display:none">
+      <div class="icon">📋</div>
+      <p>Nog geen projecten.<br>Klik op <strong>+ Nieuw project</strong> om te beginnen.</p>
+    </div>
+
+    <div id="projects-list"></div>
+  </main>
+</div>
 
 <!-- Modal -->
 <div class="modal-backdrop" id="modal" onclick="handleBackdropClick(event)">
@@ -345,30 +406,110 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Annuleren</button>
-      <button class="btn btn-primary" onclick="saveProject()">Opslaan</button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveProject()">Opslaan</button>
     </div>
   </div>
 </div>
 
-<script>
-// ── State ────────────────────────────────────────────────────────────
-let projects = JSON.parse(localStorage.getItem('dt_projects') || '[]');
-let editingId = null;
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-// ── Storage ──────────────────────────────────────────────────────────
-function save() {
-  localStorage.setItem('dt_projects', JSON.stringify(projects));
+<script>
+// ── Firebase config ───────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyANtiEyluA1gZ0pCMwwjPMTKmYmtJezVaE",
+  authDomain: "deadlinetracker-9c20c.firebaseapp.com",
+  projectId: "deadlinetracker-9c20c",
+  storageBucket: "deadlinetracker-9c20c.firebasestorage.app",
+  messagingSenderId: "141703597353",
+  appId: "1:141703597353:web:189221cb5ca9c408e83b38"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ── State ────────────────────────────────────────────────────────────
+let projects = [];
+let currentUser = null;
+let editingId = null;
+let unsubscribe = null;
+
+// ── Auth ─────────────────────────────────────────────────────────────
+function signIn() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(() => {
+    document.getElementById('login-error').style.display = 'block';
+  });
+}
+
+function signOut() {
+  if (unsubscribe) unsubscribe();
+  auth.signOut();
+  toggleUserMenu(false);
+}
+
+function toggleUserMenu(force) {
+  const menu = document.getElementById('user-menu');
+  const open = force !== undefined ? force : !menu.classList.contains('open');
+  menu.classList.toggle('open', open);
+  if (open) {
+    setTimeout(() => document.addEventListener('click', closeMenuOnOutside, { once: true }), 0);
+  }
+}
+
+function closeMenuOnOutside(e) {
+  const menu = document.getElementById('user-menu');
+  if (!menu.contains(e.target)) menu.classList.remove('open');
+}
+
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+  if (user) {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('user-avatar').src = user.photoURL || '';
+    document.getElementById('user-name').textContent = user.displayName || user.email;
+    startListening();
+    updateNotifStatus();
+  } else {
+    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+});
+
+// ── Firestore sync ───────────────────────────────────────────────────
+function startListening() {
+  if (unsubscribe) unsubscribe();
+  document.getElementById('sync-indicator').classList.add('syncing');
+
+  unsubscribe = db.collection('users').doc(currentUser.uid)
+    .collection('projects')
+    .orderBy('deadline')
+    .onSnapshot(snapshot => {
+      projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      document.getElementById('sync-indicator').classList.remove('syncing');
+      render();
+      checkDeadlinesDirect();
+    }, () => {
+      document.getElementById('sync-indicator').classList.remove('syncing');
+    });
+}
+
+function userProjectsRef() {
+  return db.collection('users').doc(currentUser.uid).collection('projects');
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
-}
-
 function urgencyClass(deadline) {
   const ms = new Date(deadline).getTime() - Date.now();
-  if (ms < 0)                    return 'past';
-  if (ms < 24 * 3600 * 1000)    return 'urgent';
+  if (ms < 0)                     return 'past';
+  if (ms < 24 * 3600 * 1000)     return 'urgent';
   if (ms < 7 * 24 * 3600 * 1000) return 'soon';
   return 'ok';
 }
@@ -391,26 +532,29 @@ function formatDate(deadline) {
   });
 }
 
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 // ── Render ───────────────────────────────────────────────────────────
 function render() {
   const list = document.getElementById('projects-list');
   const empty = document.getElementById('empty-state');
 
-  const sorted = [...projects].sort((a, b) =>
-    new Date(a.deadline) - new Date(b.deadline)
-  );
-
-  if (sorted.length === 0) {
+  if (projects.length === 0) {
     empty.style.display = 'block';
     list.innerHTML = '';
     return;
   }
   empty.style.display = 'none';
 
-  list.innerHTML = sorted.map(p => {
+  list.innerHTML = projects.map(p => {
     const cls = urgencyClass(p.deadline);
-    const total = p.criteria.length;
-    const done = p.criteria.filter(c => c.checked).length;
+    const criteria = p.criteria || [];
+    const total = criteria.length;
+    const done = criteria.filter(c => c.checked).length;
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
     const isExpanded = p._expanded ? 'open' : '';
 
@@ -426,7 +570,7 @@ function render() {
           </div>
         </div>
         <span class="deadline-badge">${formatCountdown(p.deadline)}</span>
-        <span class="chevron">▼</span>
+        <span class="chevron" style="${isExpanded ? 'transform:rotate(180deg)' : ''}">▼</span>
       </div>
       <div class="card-body ${isExpanded}">
         ${p.description ? `<p class="description-text">${escHtml(p.description)}</p>` : ''}
@@ -436,7 +580,7 @@ function render() {
             <div class="progress-bar-fill" style="width:${pct}%"></div>
           </div>
           <ul class="criteria-list">
-            ${p.criteria.map((c, i) => `
+            ${criteria.map((c, i) => `
               <li class="criteria-item">
                 <input type="checkbox" id="c-${p.id}-${i}"
                   ${c.checked ? 'checked' : ''}
@@ -455,38 +599,35 @@ function render() {
   }).join('');
 }
 
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
 function toggleCard(id) {
   const p = projects.find(x => x.id === id);
-  if (p) { p._expanded = !p._expanded; render(); }
+  if (!p) return;
+  p._expanded = !p._expanded;
+  // Sla expanded state lokaal op (niet in Firestore)
+  render();
 }
 
 function toggleCriterion(id, index, checked) {
   const p = projects.find(x => x.id === id);
-  if (p) { p.criteria[index].checked = checked; save(); render(); }
+  if (!p) return;
+  const criteria = [...(p.criteria || [])];
+  criteria[index] = { ...criteria[index], checked };
+  userProjectsRef().doc(id).update({ criteria });
 }
 
-// ── Modal ────────────────────────────────────────────────────────────
+// ── Modal ─────────────────────────────────────────────────────────────
 function openModal(id = null) {
   editingId = id;
-  const modal = document.getElementById('modal');
   document.getElementById('modal-title').textContent = id ? 'Project bewerken' : 'Nieuw project';
 
   if (id) {
     const p = projects.find(x => x.id === id);
     document.getElementById('f-name').value = p.name;
-    // Format for datetime-local input
     const d = new Date(p.deadline);
-    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
-      .toISOString().slice(0, 16);
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     document.getElementById('f-deadline').value = local;
     document.getElementById('f-desc').value = p.description || '';
-    renderCriteriaEditor(p.criteria.map(c => c.text));
+    renderCriteriaEditor((p.criteria || []).map(c => c.text));
   } else {
     document.getElementById('f-name').value = '';
     document.getElementById('f-deadline').value = '';
@@ -495,7 +636,7 @@ function openModal(id = null) {
   }
 
   updateNotifStatus();
-  modal.classList.add('open');
+  document.getElementById('modal').classList.add('open');
   setTimeout(() => document.getElementById('f-name').focus(), 100);
 }
 
@@ -508,10 +649,9 @@ function handleBackdropClick(e) {
   if (e.target === document.getElementById('modal')) closeModal();
 }
 
-// ── Criteria editor ──────────────────────────────────────────────────
+// ── Criteria editor ───────────────────────────────────────────────────
 function renderCriteriaEditor(texts) {
-  const editor = document.getElementById('criteria-editor');
-  editor.innerHTML = '';
+  document.getElementById('criteria-editor').innerHTML = '';
   texts.forEach((t, i) => addCriterionRow(t, i));
 }
 
@@ -528,66 +668,62 @@ function addCriterionRow(value = '', index) {
   if (index === undefined) row.querySelector('input').focus();
 }
 
-function addCriterion() {
-  addCriterionRow();
-}
+function addCriterion() { addCriterionRow(); }
 
 function getCriteriaTexts() {
   return [...document.querySelectorAll('#criteria-editor .criteria-edit-row input')]
     .map(i => i.value.trim()).filter(Boolean);
 }
 
-// ── Save ─────────────────────────────────────────────────────────────
-function saveProject() {
+// ── Opslaan / verwijderen ─────────────────────────────────────────────
+async function saveProject() {
   const name = document.getElementById('f-name').value.trim();
   const deadline = document.getElementById('f-deadline').value;
-  if (!name || !deadline) {
-    alert('Vul minimaal een projectnaam en deadline in.');
-    return;
-  }
+  if (!name || !deadline) { alert('Vul minimaal een projectnaam en deadline in.'); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.textContent = 'Opslaan...';
+  btn.disabled = true;
+
   const description = document.getElementById('f-desc').value.trim();
   const criteriaTexts = getCriteriaTexts();
 
-  if (editingId) {
-    const p = projects.find(x => x.id === editingId);
-    // Merge: keep existing checked state if criterion text matches
-    const oldMap = Object.fromEntries(p.criteria.map(c => [c.text, c.checked]));
-    p.name = name;
-    p.deadline = deadline;
-    p.description = description;
-    p.criteria = criteriaTexts.map(t => ({ text: t, checked: oldMap[t] || false }));
-  } else {
-    projects.push({
-      id: uid(),
-      name,
-      deadline,
-      description,
-      criteria: criteriaTexts.map(t => ({ text: t, checked: false })),
-      _expanded: true
-    });
+  try {
+    if (editingId) {
+      const p = projects.find(x => x.id === editingId);
+      const oldMap = Object.fromEntries((p.criteria || []).map(c => [c.text, c.checked]));
+      await userProjectsRef().doc(editingId).update({
+        name, deadline, description,
+        criteria: criteriaTexts.map(t => ({ text: t, checked: oldMap[t] || false }))
+      });
+    } else {
+      await userProjectsRef().add({
+        name, deadline, description,
+        criteria: criteriaTexts.map(t => ({ text: t, checked: false })),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    closeModal();
+  } catch (e) {
+    alert('Opslaan mislukt: ' + e.message);
+  } finally {
+    btn.textContent = 'Opslaan';
+    btn.disabled = false;
   }
-
-  save();
-  closeModal();
-  render();
-  scheduleNotificationCheck();
 }
 
-function deleteProject(id) {
+async function deleteProject(id) {
   if (!confirm('Project verwijderen?')) return;
-  projects = projects.filter(p => p.id !== id);
-  save();
-  render();
+  await userProjectsRef().doc(id).delete();
 }
 
-// ── Notifications ────────────────────────────────────────────────────
+// ── Meldingen ────────────────────────────────────────────────────────
 function updateNotifStatus() {
   const el = document.getElementById('notif-status');
   const txt = document.getElementById('notif-status-text');
   const banner = document.getElementById('notif-banner');
 
   if (!('Notification' in window)) {
-    el.className = 'notif-status';
     txt.textContent = 'Meldingen: niet ondersteund door browser';
     banner.style.display = 'none';
     return;
@@ -604,26 +740,14 @@ function updateNotifStatus() {
   } else {
     el.className = '';
     txt.textContent = 'Meldingen: nog niet ingeschakeld';
-    if (projects.length > 0) banner.style.display = 'flex';
+    banner.style.display = 'flex';
   }
 }
 
 async function requestNotifications() {
   if (!('Notification' in window)) return;
-  const result = await Notification.requestPermission();
+  await Notification.requestPermission();
   updateNotifStatus();
-  if (result === 'granted') scheduleNotificationCheck();
-}
-
-// Notification check via service worker or direct
-function scheduleNotificationCheck() {
-  if (!('serviceWorker' in navigator)) return;
-  navigator.serviceWorker.ready.then(reg => {
-    if (reg.active) {
-      reg.active.postMessage({ type: 'CHECK_DEADLINES', projects });
-    }
-  });
-  // Also do direct check for when SW not ready yet
   checkDeadlinesDirect();
 }
 
@@ -647,7 +771,6 @@ function checkDeadlinesDirect() {
     INTERVALS.forEach(({ ms, label }) => {
       const key = `${p.id}_${label}`;
       if (notified[key]) return;
-      // Fire if we're within 30 min of the trigger point (and past it on this side)
       if (remaining <= ms && remaining > ms - 30 * 60 * 1000) {
         new Notification(`Deadline herinnering: ${p.name}`, {
           body: `Nog ${label} tot de deadline! (${formatDate(p.deadline)})`,
@@ -661,25 +784,19 @@ function checkDeadlinesDirect() {
   });
 }
 
-// ── Service Worker ───────────────────────────────────────────────────
+// ── Service Worker ────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
-// ── Live countdown update ────────────────────────────────────────────
+// ── Live countdown update ─────────────────────────────────────────────
 setInterval(() => {
-  // Update countdown badges without full re-render
   projects.forEach(p => {
     const badge = document.querySelector(`#card-${p.id} .deadline-badge`);
     if (badge) badge.textContent = formatCountdown(p.deadline);
   });
   checkDeadlinesDirect();
 }, 60 * 1000);
-
-// ── Init ─────────────────────────────────────────────────────────────
-render();
-updateNotifStatus();
-scheduleNotificationCheck();
 </script>
 </body>
 </html>
